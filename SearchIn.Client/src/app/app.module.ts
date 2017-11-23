@@ -6,6 +6,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { SearchComponent } from './components/search/search.component';
 
+import { FormsModule } from '@angular/forms';
+import { SearchHubService } from './services/search-hub.service';
+
 
 @NgModule({
   declarations: [
@@ -14,9 +17,12 @@ import { SearchComponent } from './components/search/search.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule
   ],
-  providers: [],
+  providers: [
+    SearchHubService
+  ],
   bootstrap: [MainMenuComponent]
 })
 export class AppModule { }

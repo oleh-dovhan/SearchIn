@@ -3,43 +3,43 @@
   <div class="demo-content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
     <div class="main-form">
       <div class="start-url-field mdl-textfield mdl-js-textfield">
-        <input class="mdl-textfield__input" type="text" id="start-url">
+        <input class="mdl-textfield__input" type="text" id="start-url" [(ngModel)]="startUrl">
         <label class="mdl-textfield__label" for="start-url">Input URL...</label>
       </div>
       <div class="fields-part">
         <div class="search-text-field mdl-textfield mdl-js-textfield">
-          <input class="mdl-textfield__input" type="text" id="search-text">
+          <input class="mdl-textfield__input" type="text" id="search-text" [(ngModel)]="searchText">
           <label class="mdl-textfield__label" for="search-text">Input search text...</label>
         </div>
         <div class="count-urls-field mdl-textfield mdl-js-textfield">
-          <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="count-urls">
+          <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="count-urls" [(ngModel)]="countUrls">
           <label class="mdl-textfield__label" for="count-urls">Count urls...</label>
           <span class="mdl-textfield__error">Input is not a number!</span>
         </div>
         <div class="count-threads-field mdl-textfield mdl-js-textfield">
-          <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="count-threads">
+          <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="count-threads" [(ngModel)]="countThreads">
           <label class="mdl-textfield__label" for="count-threads">Count threads...</label>
           <span class="mdl-textfield__error">Input is not a number!</span>
         </div>
       </div>
       <div class="buttons-part">
         <div class="start-button">
-          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" (click)="start()">
           Start
         </button>
         </div>
         <div class="pause-button">
-          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" (click)="pause()">
           Pause
         </button>
         </div>
         <div class="stop-button">
-          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" (click)="stop()">
           Stop
         </button>
         </div>
       </div>
-      <div class="url-container-part">
+      <div class="url-container">
       </div>
     </div>
   </div>
