@@ -1,0 +1,65 @@
+.demo-container {
+  max-width: 1600px;
+  width: calc(100% - 16px);
+  margin: 0 auto;
+}
+
+.demo-content {
+  border-radius: 2px;
+  padding: 20px 46px;
+  margin-bottom: 36px;
+}
+
+.main-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.start-url-field {
+  width: 100%;
+}
+
+.fields-part {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.search-text-field {
+  width: 55%;
+}
+
+.count-urls-field {
+  width: 18%;
+}
+
+.count-threads-field {
+  width: 18%;
+}
+
+.buttons-part {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.start-button {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.pause-button {
+  padding-left: 40px;
+  padding-right: 40px;
+  >button {
+    background-color: orange;
+  }
+}
+
+.stop-button {
+  padding-left: 40px;
+  padding-right: 40px;
+  >button {
+    background-color: red;
+  }
+}
