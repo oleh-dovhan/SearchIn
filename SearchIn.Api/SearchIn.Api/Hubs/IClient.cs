@@ -1,8 +1,11 @@
-﻿namespace SearchIn.Api.Hubs
+﻿using System.Collections.Generic;
+using SearchIn.Api.Models;
+
+namespace SearchIn.Api.Hubs
 {
 	public interface IClient
 	{
 		void onConnected();
-		void onDisconnected();
+		void onNewUrlListFound(IEnumerable<UrlDto> urlList);
 	}
 }

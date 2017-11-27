@@ -44,6 +44,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.6.5.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.6.5\lib\Net45\HtmlAgilityPack.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.2.2\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
       <Private>True</Private>
@@ -174,7 +178,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
@@ -212,13 +215,27 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="Exceptions\SearchProcessError.cs" />
+    <Compile Include="Exceptions\SearchProcessException.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Hubs\IClient.cs" />
     <Compile Include="Hubs\SearchHub.cs" />
     <Compile Include="Infrastructure\NinjectResolver.cs" />
+    <Compile Include="Models\ScanState.cs" />
+    <Compile Include="Models\SearchState.cs" />
+    <Compile Include="Models\UrlDto.cs" />
+    <Compile Include="Models\UrlStateDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\HtmlFinder.cs" />
+    <Compile Include="Services\HtmlLoader.cs" />
+    <Compile Include="Services\HtmlLoaderFactory.cs" />
+    <Compile Include="Services\IHtmlFinder.cs" />
+    <Compile Include="Services\IHtmlLoader.cs" />
+    <Compile Include="Services\IHtmlLoaderFactory.cs" />
+    <Compile Include="Services\ISearchService.cs" />
+    <Compile Include="Services\SearchService.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>

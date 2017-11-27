@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Web.Mvc;
 using Ninject;
+using SearchIn.Api.Services;
 
 namespace SearchIn.Api.Infrastructure
 {
@@ -27,6 +28,7 @@ namespace SearchIn.Api.Infrastructure
 
 		private void AddBindings()
 		{
+			kernel.Bind<ISearchService>().To<SearchService>();
 		}
 	}
 }

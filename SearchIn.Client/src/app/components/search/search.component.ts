@@ -9,7 +9,7 @@ import { SearchHubService } from "../../services/search-hub.service";
 export class SearchComponent implements OnInit {
 
   private startUrl: string;
-  private searchText: string;
+  private searchString: string;
   private countUrls: number;
   private countThreads: number;
 
@@ -20,7 +20,9 @@ export class SearchComponent implements OnInit {
 
   start() {
     console.log("start");
-    this.searchHubService.connect();
+    this.searchHubService.connect().then(() => {
+      this.searchHubService.startSearch(this.startUrl, this.searchString, this.countUrls, this.countThreads);
+    });
   }
 
   pause() {
