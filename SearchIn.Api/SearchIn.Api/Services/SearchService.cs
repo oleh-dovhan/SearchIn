@@ -1,15 +1,16 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Web.Configuration;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using SearchIn.Api.Models;
 using SearchIn.Api.Exceptions;
-using System.Threading.Tasks;
-using System.Threading;
+using SearchIn.Api.Infrastructure;
 
 namespace SearchIn.Api.Services
 {
@@ -25,12 +26,13 @@ namespace SearchIn.Api.Services
 		private BlockingCollection<string> urlList;
 		private ConcurrentQueue<string> urlQueue;
 
-		private volatile int c = 0;
+		private string searchString; 
+		private int countUrls;
 
 		private volatile SearchState searchState;
 
 		public event Action<IEnumerable<UrlDto>> NewUrlListFound;
-		public event Action<string, HttpStatusCode> PageLoadFailed;
+		public event Action<UrlStateDto> UrlStateChanged;
 
 		public SearchState SearchState
 		{
@@ -45,7 +47,6 @@ namespace SearchIn.Api.Services
 			get { return maxCountThreads; }
 		}
 
-
 		public SearchService(IHtmlLoaderFactory htmlLoaderFactory, IHtmlFinder htmlFinder)
 		{
 			if (!int.TryParse(WebConfigurationManager.AppSettings["maxCountUrls"], out maxCountUrls))
@@ -59,7 +60,6 @@ namespace SearchIn.Api.Services
 
 			urlList = new BlockingCollection<string>();
 			urlQueue = new ConcurrentQueue<string>();
-
 			searchState = SearchState.Stopped;
 		}
 
@@ -71,13 +71,24 @@ namespace SearchIn.Api.Services
 				                 && !string.IsNullOrWhiteSpace(searchString)
 				                 && urlRegex.IsMatch(startUrl);
 		}
-		private void HtmlDocumentLoadedHandler(string url, HtmlDocument htmlDoc)
+		private void HtmlDocumentLoadedHandler(string url, Stream stream)
 		{
+			var htmlDoc = new HtmlDocument();
+			htmlDoc.Load(stream);
+
+			bool contains = htmlFinder.Contains(htmlDoc, searchString);
+			var urlStateDto = new UrlStateDto
+			{
+				Id = urlList.ToList().IndexOf(url),
+				ScanState = contains ? ScanState.Found: ScanState.NotFound
+			};
+			OnUrlStateChanged(urlStateDto);
+
 		    var childUrlList = htmlFinder.FindAllUrls(htmlDoc);
 			var childUrlDtoList = new List<UrlDto>();
 			foreach (var childUrl in childUrlList)
 			{
-				if (urlList.Count >= c)
+				if (urlList.Count >= countUrls)
 				{
 					searchState = SearchState.Stopped;
 					break;
@@ -101,7 +112,12 @@ namespace SearchIn.Api.Services
 		}
 		private void HtmlDocumentLoadFailedHandler(string url, HttpStatusCode statusCode)
 		{
-			OnPageLoadFailed(url, statusCode);
+			var urlStateDto = new UrlStateDto
+			{
+				Id = urlList.ToList().IndexOf(url),
+				ScanState = ScanState.Error
+			};
+			OnUrlStateChanged(urlStateDto);
 		}
 
 		public void StartSearch(string startUrl, string searchString, int countUrls, int countThreads)
@@ -113,22 +129,24 @@ namespace SearchIn.Api.Services
 					throw new SearchProcessException(SearchProcessError.IncorrectInputData, "Incorrect input data.");
 				}
 
+				this.searchString = searchString;
+				this.countUrls = countUrls;
+
 				searchState = SearchState.Running;
-				TaskFactory taskFactory = new TaskFactory();
-				c = countUrls;
+
+				var lcts = new LimitedConcurrencyLevelTaskScheduler(countThreads);
+				var taskFactory = new TaskFactory(lcts);
 
 				urlQueue.Enqueue(startUrl);
 				string currUrl; 
-				while (urlList.Count < countUrls || !urlQueue.IsEmpty)
+				while (searchState != SearchState.Stopped || !urlQueue.IsEmpty)
 				{
-					if (urlQueue.TryDequeue(out currUrl))
+					if (searchState == SearchState.Running && urlQueue.TryDequeue(out currUrl))
 					{
 						var htmlLoader = htmlLoaderFactory.Create(currUrl);
 						htmlLoader.HtmlDocumentLoaded += HtmlDocumentLoadedHandler;
 						htmlLoader.HtmlDocumentLoadFailed += HtmlDocumentLoadFailedHandler;
-						//Thread.Sleep(100);
 						taskFactory.StartNew(async () => await htmlLoader.Load());
-						//htmlLoader.Load();
 					} 
 				}
 			}
@@ -175,9 +193,9 @@ namespace SearchIn.Api.Services
 		{
 			NewUrlListFound?.Invoke(urlList);
 		}
-		private void OnPageLoadFailed(string url, HttpStatusCode statusCode)
+		private void OnUrlStateChanged(UrlStateDto urlStateDto)
 		{
-			PageLoadFailed?.Invoke(url, statusCode);
+			UrlStateChanged?.Invoke(urlStateDto);
 		}
 	}
 }

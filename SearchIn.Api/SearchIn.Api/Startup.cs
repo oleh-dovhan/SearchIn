@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNet.SignalR;
+using Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Cors;
-using Owin;
 using SearchIn.Api.Hubs;
 using SearchIn.Api.Services;
 
@@ -18,6 +18,7 @@ namespace SearchIn.Api
 				() => new SearchHub(new SearchService(new HtmlLoaderFactory(), new HtmlFinder())));
 			app.UseCors(CorsOptions.AllowAll);
 			app.MapSignalR("/search", new HubConfiguration());
+			
 		}
 	}
 }

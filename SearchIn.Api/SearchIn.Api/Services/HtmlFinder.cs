@@ -18,7 +18,7 @@ namespace SearchIn.Api.Services
 		public IEnumerable<string> FindAllUrls(HtmlDocument htmlDoc)
 		{
 			var hrefNodes = htmlDoc.DocumentNode
-						  .SelectNodes("//a[@href]");
+						           .SelectNodes("//a[@href]");
 			if (hrefNodes != null)
 			{
 				return hrefNodes.Select(node => node.Attributes["href"].Value)

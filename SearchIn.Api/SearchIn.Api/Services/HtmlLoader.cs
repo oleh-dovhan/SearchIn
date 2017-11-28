@@ -1,47 +1,60 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
 
 namespace SearchIn.Api.Services
 {
 	public class HtmlLoader: IHtmlLoader
 	{
-		private HtmlWeb htmlWeb;
 		private string url;
 
-		public event Action<string, HtmlDocument> HtmlDocumentLoaded;
+		public event Action<string, Stream> HtmlDocumentLoaded;
 		public event Action<string, HttpStatusCode> HtmlDocumentLoadFailed;
 
+		public HtmlLoader()
+		{
+			url = "";
+		}
 		public HtmlLoader(string url)
 		{
-			htmlWeb = new HtmlWeb()
-			{
-				PreRequest = request =>
-				{
-					request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
-					return true;
-				}
-				
-			};
-			this.url = url;
+			if (url != null) this.url = url;
+			else this.url = "";
+		}
+
+		public string Url
+		{
+			get { return url; }
+			set { if (url != null) url = value; }
 		}
 
 		public async Task Load()
 		{
-			var htmlDoc = await Task.Run(() => htmlWeb.Load(url));
-			if (htmlWeb.StatusCode == HttpStatusCode.OK)
-				OnHtmlDocumentLoaded(url, htmlDoc);
-			else OnHtmlDocumentLoadFailed(url, htmlWeb);
+			await Load(url);
+		}
+		public async Task Load(string url)
+		{
+			using (var client = new HttpClient())
+			using (HttpResponseMessage response = await client.GetAsync(url))
+			using (HttpContent content = response.Content)
+			{
+				if (response.StatusCode == HttpStatusCode.OK)
+				{
+					Stream htmlDoc = await content.ReadAsStreamAsync();
+					OnHtmlDocumentLoaded(url, htmlDoc);
+				}
+				else OnHtmlDocumentLoadFailed(url, response.StatusCode);
+			}
 		}
 
-		private void OnHtmlDocumentLoaded(string url, HtmlDocument htmlDoc)
+		private void OnHtmlDocumentLoaded(string url, Stream stream)
 		{
-			HtmlDocumentLoaded?.Invoke(url, htmlDoc);
+			HtmlDocumentLoaded?.Invoke(url, stream);
 		}
-		private void OnHtmlDocumentLoadFailed(string url, HtmlWeb htmlWeb)
+		private void OnHtmlDocumentLoadFailed(string url,  HttpStatusCode statusCode)
 		{
-			HtmlDocumentLoadFailed?.Invoke(url, htmlWeb.StatusCode);
+			HtmlDocumentLoadFailed?.Invoke(url, statusCode);
 		}
 	}
 }

@@ -1,15 +1,18 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
 
 namespace SearchIn.Api.Services
 {
 	public interface IHtmlLoader
 	{
-		Task Load();
+		string Url { get; set; }
 
-		event Action<string, HtmlDocument> HtmlDocumentLoaded;
+		Task Load();
+		Task Load(string url);
+
+		event Action<string, Stream> HtmlDocumentLoaded;
 		event Action<string, HttpStatusCode> HtmlDocumentLoadFailed;
 	}
 }

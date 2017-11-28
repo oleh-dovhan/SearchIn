@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, AfterViewInit, ViewChild } from '@angular/core';
 import { SearchHubService } from "../../services/search-hub.service";
 
 @Component({
@@ -6,32 +6,48 @@ import { SearchHubService } from "../../services/search-hub.service";
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss']
 })
-export class SearchComponent implements OnInit {
+export class SearchComponent implements AfterViewInit {
 
   private startUrl: string;
   private searchString: string;
   private countUrls: number;
   private countThreads: number;
 
-  constructor(private searchHubService: SearchHubService) { }
+  @ViewChild('SearchProgressBar') SearchProgressBar;
+  private currentProgressValue: number;
 
-  ngOnInit() {
+  constructor(private searchHubService: SearchHubService) {
+    this.currentProgressValue = 0;
+  }
+
+  ngAfterViewInit() {
+    this.SearchProgressBar.nativeElement.addEventListener('mdl-componentupgraded', function () {
+      this.MaterialProgress.setProgress(this.currentProgressValue);
+    });
+  }
+
+  private updateProgress() {
+    if (this.currentProgressValue >= 0 && this.currentProgressValue <= 100) {
+      this.SearchProgressBar.nativeElement.MaterialProgress.setProgress(this.currentProgressValue);
+    }
   }
 
   start() {
     console.log("start");
-    this.searchHubService.connect().then(() => {
+    /*this.searchHubService.connect().then(() => {
       this.searchHubService.startSearch(this.startUrl, this.searchString, this.countUrls, this.countThreads);
-    });
+    });*/
   }
 
   pause() {
     console.log("pause");
+    //this.searchHubService.pauseSearch();
   }
 
   stop() {
     console.log("stop");
-    this.searchHubService.disconnect();    
+    //this.searchHubService.stopSearch();
+    //this.searchHubService.disconnect();
   }
-  
+
 }

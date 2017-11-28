@@ -10,7 +10,6 @@ namespace SearchIn.Api.Hubs
 	{
 		private ISearchService searchService;
 
-
 		public SearchHub(ISearchService searchService)
 		{
 			this.searchService = searchService;
@@ -22,18 +21,17 @@ namespace SearchIn.Api.Hubs
 			Clients.Caller.onConnected();
 			return base.OnConnected();
 		}
-
 		public async Task StartSearch(string startUrl, string searchString, int countUrls, int countThreads)
 		{
 			await Task.Run(() => searchService.StartSearch(startUrl, searchString, countUrls, countThreads));
 		}
-		public async Task PauseSearch()
+		public void PauseSearch()
 		{
-
+			searchService.PauseSearch();
 		}
-		public async Task StopSearch()
+		public void StopSearch()
 		{
-
+			searchService.StopSearch();
 		}
 
 		private void NewUrlListFoundHandler(IEnumerable<UrlDto> urlList)
