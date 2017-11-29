@@ -1,6 +1,6 @@
-<div class="demo-container mdl-grid">
+<div class="search-container mdl-grid">
   <div class="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
-  <div class="demo-content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
+  <div class="search-content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
     <div class="main-form">
       <div class="start-url-field mdl-textfield mdl-js-textfield">
         <input class="mdl-textfield__input" type="text" id="start-url" [(ngModel)]="startUrl">
@@ -41,8 +41,38 @@
       </div>
       <div class="url-container">
       </div>
-      <div #SearchProgressBar class="mdl-progress mdl-js-progress search-progress-bar">
-    </div>
+      <div #SearchProgressBar class="mdl-progress mdl-js-progress search-progress-bar"></div>
+      <div class="url-table">
+        <table class="url-table-item mostly-customized-scrollbar mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+          <thead>
+            <tr>
+              <th>№</th>
+              <th>State</th>
+              <th class="mdl-data-table__cell--non-numeric">Url</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let b of a">
+              <td>{{b}}</td>
+              <td>Norma</td>
+              <td class="mdl-data-table__cell--non-numeric">dsknbgl;dkmfgblkmfgdlknmdlmgnblegfmbldfmglbmdf.beldrkfmgblkdmfglnbkmdflkngmbdlkfmgnlbkmfdnglkmfdlkngmldkfnmldfkngmlkfdgmnldfmngl
+                mfgnnklm
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="error-dialog">
+        <dialog #ErrorDialog class="mdl-dialog">
+          <h3 class="mdl-dialog__title">Error</h3>
+          <div class="mdl-dialog__content">
+            <div class="error-dialog-text mdl-textfield">{{errorMessage}}</div>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button (click)="closeErrorDialog()" type="button" class="error-dialog-button mdl-button close">OK</button>
+          </div>
+        </dialog>
+      </div>
     </div>
   </div>
 </div>
