@@ -7,12 +7,11 @@ namespace SearchIn.Api.Services
 {
 	public interface IHtmlLoader
 	{
+		event Action<string, Stream> HtmlDocumentLoaded;
+		event Action<string, HttpStatusCode> HtmlDocumentLoadFailed;
+
 		string Url { get; set; }
 
 		Task Load();
-		Task Load(string url);
-
-		event Action<string, Stream> HtmlDocumentLoaded;
-		event Action<string, HttpStatusCode> HtmlDocumentLoadFailed;
 	}
 }

@@ -8,14 +8,16 @@ namespace SearchIn.Api.Services
 {
 	public class HtmlLoader: IHtmlLoader
 	{
+		private static readonly HttpClient httpClient;
 		private string url;
 
 		public event Action<string, Stream> HtmlDocumentLoaded;
 		public event Action<string, HttpStatusCode> HtmlDocumentLoadFailed;
 
-		public HtmlLoader()
+		static HtmlLoader()
 		{
-			url = "";
+			httpClient = new HttpClient(new WebRequestHandler() { AllowPipelining = true });
+			httpClient.Timeout = new TimeSpan(0, 0, 3);
 		}
 		public HtmlLoader(string url)
 		{
@@ -31,20 +33,22 @@ namespace SearchIn.Api.Services
 
 		public async Task Load()
 		{
-			await Load(url);
-		}
-		public async Task Load(string url)
-		{
-			using (var client = new HttpClient())
-			using (HttpResponseMessage response = await client.GetAsync(url))
-			using (HttpContent content = response.Content)
+			try
 			{
-				if (response.StatusCode == HttpStatusCode.OK)
+				using (HttpResponseMessage response = await httpClient.GetAsync(url))
+				using (HttpContent content = response.Content)
 				{
-					Stream htmlDoc = await content.ReadAsStreamAsync();
-					OnHtmlDocumentLoaded(url, htmlDoc);
+					if (response.StatusCode == HttpStatusCode.OK)
+					{
+						Stream htmlDoc = await content.ReadAsStreamAsync();
+						OnHtmlDocumentLoaded(url, htmlDoc);
+					}
+					else OnHtmlDocumentLoadFailed(url, response.StatusCode);
 				}
-				else OnHtmlDocumentLoadFailed(url, response.StatusCode);
+			}
+			catch (HttpRequestException)
+			{
+				OnHtmlDocumentLoadFailed(url, HttpStatusCode.RequestTimeout);
 			}
 		}
 

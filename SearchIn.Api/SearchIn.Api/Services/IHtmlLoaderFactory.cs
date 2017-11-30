@@ -2,7 +2,6 @@
 {
 	public interface IHtmlLoaderFactory
 	{
-		IHtmlLoader Create();
 		IHtmlLoader Create(string url);
 	}
 }

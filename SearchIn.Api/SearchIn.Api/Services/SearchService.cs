@@ -31,8 +31,8 @@ namespace SearchIn.Api.Services
 
 		private volatile SearchState searchState;
 
-		public event Action<IEnumerable<UrlDto>> NewUrlListFound;
 		public event Action<UrlStateDto> UrlStateChanged;
+		public event Action<IEnumerable<UrlDto>> NewUrlListFound;
 
 		public SearchState SearchState
 		{
@@ -60,6 +60,7 @@ namespace SearchIn.Api.Services
 
 			urlList = new BlockingCollection<string>();
 			urlQueue = new ConcurrentQueue<string>();
+
 			searchState = SearchState.Stopped;
 		}
 
@@ -189,13 +190,13 @@ namespace SearchIn.Api.Services
 			}
 		}
 
-		private void OnNewUrlListFound(IEnumerable<UrlDto> urlList)
-		{
-			NewUrlListFound?.Invoke(urlList);
-		}
 		private void OnUrlStateChanged(UrlStateDto urlStateDto)
 		{
 			UrlStateChanged?.Invoke(urlStateDto);
+		}
+		private void OnNewUrlListFound(IEnumerable<UrlDto> urlList)
+		{
+			NewUrlListFound?.Invoke(urlList);
 		}
 	}
 }

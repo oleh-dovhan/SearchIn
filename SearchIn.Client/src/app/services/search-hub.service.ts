@@ -2,6 +2,7 @@ import { Injectable, EventEmitter } from '@angular/core';
 import { Observable } from "rxjs/Observable";
 import 'signalr';
 import { Url } from "../models/url";
+import { UrlState } from "../models/url-state";
 declare var jquery: any;
 declare var $: any;
 
@@ -16,7 +17,9 @@ export class SearchHubService {
   private ConnectionId: any;
 
   public onConnectedEvent: EventEmitter<void>;
+  public onUrlStateChanged: EventEmitter<UrlState>;
   public onNewUrlListFound: EventEmitter<Url[]>;
+  public onErrorFound: EventEmitter<string>;
 
   constructor() {
     this.SignalrConnection = $.hubConnection(this.hubUrl, {
@@ -25,7 +28,9 @@ export class SearchHubService {
     this.ChatProxy = this.SignalrConnection.createHubProxy(this.hubName);
 
     this.onConnectedEvent = new EventEmitter<void>();
+    this.onUrlStateChanged = new EventEmitter<UrlState>();
     this.onNewUrlListFound = new EventEmitter<Url[]>();
+    this.onErrorFound = new EventEmitter<string>();
 
     this.registerEvents();
   }
@@ -38,10 +43,19 @@ export class SearchHubService {
       self.onConnectedEvent.emit();
     });
 
+    this.ChatProxy.on('onUrlStateChanged', function (urlState: UrlState) {
+      console.log("onUrlStateChanged");
+      self.onUrlStateChanged.emit(urlState);
+    });
+
     this.ChatProxy.on('onNewUrlListFound', function (urlList: Url[]) {
       console.log("onNewUrlListFound");
-      urlList.forEach(el => console.log(el));
       self.onNewUrlListFound.emit(urlList);
+    });
+
+    this.ChatProxy.on('onErrorFound', function (errorMessage: string) {
+      console.log("onErrorFound");
+      self.onErrorFound.emit(errorMessage);
     });
   }
 

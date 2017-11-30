@@ -6,11 +6,14 @@ namespace SearchIn.Api.Services
 {
 	public interface ISearchService
 	{
+		event Action<UrlStateDto> UrlStateChanged;
+		event Action<IEnumerable<UrlDto>> NewUrlListFound;
+
+		SearchState SearchState { get; }
+
 		void StartSearch(string startUrl, string searchString, int countUrls, int countThreads);
 		void PauseSearch();
 		void ResumeSearch();
 		void StopSearch();
-
-		event Action<IEnumerable<UrlDto>> NewUrlListFound;
 	}
 }
