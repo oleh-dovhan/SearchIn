@@ -73,16 +73,25 @@ namespace SearchIn.Api.Hubs
 
 		private void UrlStateChangedHandler(UrlStateDto urlStateDto)
 		{
-			Clients.Caller.onUrlStateChanged(urlStateDto);
+			lock (this)
+			{
+				Clients.Caller.onUrlStateChanged(urlStateDto);
+			}
 		}
 		private void NewUrlListFoundHandler(IEnumerable<UrlDto> urlList)
 		{
-			Clients.Caller.onNewUrlListFound(urlList);
+			lock (this)
+			{
+				Clients.Caller.onNewUrlListFound(urlList);
+			}
 		}
 
 		private void SendErrorMessageToClient(string errorMessage)
 		{
-			Clients.Caller.onErrorFound(errorMessage);
+			lock (this)
+			{
+				Clients.Caller.onErrorFound(errorMessage);
+			}
 		}
 	}
 }

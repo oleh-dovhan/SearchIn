@@ -145,8 +145,7 @@ namespace SearchIn.Api.Services
 				this.searchString = searchString;
 				this.countUrls = countUrls;
 
-				var lcts = new LimitedConcurrencyLevelTaskScheduler(countThreads);
-				var taskFactory = new TaskFactory(lcts);
+				var tasks = new List<Task>();
 
 				OnNewUrlListFound(new List<UrlDto>() { new UrlDto { Id = 0, ScanState = ScanState.Downloading, Value = startUrl } });
 
@@ -161,11 +160,24 @@ namespace SearchIn.Api.Services
 						var htmlLoader = htmlLoaderFactory.Create(currUrl);
 						htmlLoader.HtmlDocumentLoaded += HtmlDocumentLoadedHandler;
 						htmlLoader.HtmlDocumentLoadFailed += HtmlDocumentLoadFailedHandler;
-						taskFactory.StartNew(async () => await htmlLoader.Load(), cts.Token);
+
+						var newTask = new Task(() => htmlLoader.Load(), cts.Token);
+						tasks = tasks.Where(t => !t.IsCompleted).ToList();
+						if (tasks.Count < countThreads)
+						{
+							tasks.Add(newTask);
+							newTask.Start();
+						}
+						else
+						{
+							Task.WaitAny(tasks.ToArray());
+							tasks.Add(newTask);
+							newTask.Start();
+						}
 					}
-					Thread.Sleep(100);
 				}
 
+				Task.WaitAll(tasks.ToArray());
 				urlList.TakeWhile(url => url != null);
 				urlQueue.TakeWhile(url => url != null);
 
