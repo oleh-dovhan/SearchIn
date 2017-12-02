@@ -72,6 +72,9 @@ export class SearchComponent implements OnInit, OnDestroy, AfterViewInit {
         this.isProcessPaused = false;
       }
       else {
+        this.currentProgressValue = 0;
+        this.updateProgress();
+        this.urlList = [];
         this.searchHubService.startSearch(this.startUrl, this.searchString, this.countUrls, this.countThreads);
       }
     }
@@ -93,16 +96,21 @@ export class SearchComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private checkConnection(): boolean {
     if (!this.isConnectionEstablished) {
-      this.showErrorDialog("Connection not estabilished.");
+      this.showErrorDialog("Connection to server not estabilished.");
     }
     return this.isConnectionEstablished;
   }
 
   private validateForm(): boolean {
+    console.log(this.countUrls == undefined);
     let isAllFieldsFilled = this.startUrl != undefined
       && this.searchString != undefined
       && this.countUrls != undefined
-      && this.countThreads != undefined;
+      && this.countThreads != undefined
+      && this.startUrl != ""
+      && this.searchString != ""
+      && this.countUrls != null
+      && this.countThreads != null;
     let isCountUrlsValid = this.countUrls <= this.maxCountUrls
       && this.countUrls > 0;
     let isCountThreadsValid = this.countThreads <= this.maxCountThreads

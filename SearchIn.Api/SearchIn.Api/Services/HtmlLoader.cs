@@ -17,6 +17,7 @@ namespace SearchIn.Api.Services
 		static HtmlLoader()
 		{
 			httpClient = new HttpClient();
+			httpClient.Timeout = new TimeSpan(0, 0, 3);
 		}
 		public HtmlLoader(string url)
 		{
@@ -37,7 +38,7 @@ namespace SearchIn.Api.Services
 				using (HttpResponseMessage response = await httpClient.GetAsync(url))
 				using (HttpContent content = response.Content)
 				{
-					if (response.StatusCode == HttpStatusCode.OK)
+					if (response.IsSuccessStatusCode)
 					{
 						using (Stream htmlDoc = await content.ReadAsStreamAsync())
 						{

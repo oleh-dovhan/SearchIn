@@ -5,6 +5,7 @@ using System.Web.Configuration;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
@@ -14,7 +15,7 @@ using SearchIn.Api.Infrastructure;
 
 namespace SearchIn.Api.Services
 {
-	public class SearchService : ISearchService
+	public class SearchService : ISearchService, IDisposable
 	{
 		private readonly int maxCountUrls;
 		private readonly int maxCountThreads;
@@ -25,6 +26,7 @@ namespace SearchIn.Api.Services
 
 		private BlockingCollection<string> urlList;
 		private ConcurrentQueue<string> urlQueue;
+		private CancellationTokenSource cts;
 
 		private string searchString; 
 		private int countUrls;
@@ -60,6 +62,7 @@ namespace SearchIn.Api.Services
 
 			urlList = new BlockingCollection<string>();
 			urlQueue = new ConcurrentQueue<string>();
+			cts = new CancellationTokenSource();
 
 			searchState = SearchState.Stopped;
 		}
@@ -137,10 +140,10 @@ namespace SearchIn.Api.Services
 					throw new SearchProcessException(SearchProcessError.IncorrectInputData, "Incorrect input data.");
 				}
 
+				searchState = SearchState.Running;
+
 				this.searchString = searchString;
 				this.countUrls = countUrls;
-
-				searchState = SearchState.Running;
 
 				var lcts = new LimitedConcurrencyLevelTaskScheduler(countThreads);
 				var taskFactory = new TaskFactory(lcts);
@@ -149,17 +152,23 @@ namespace SearchIn.Api.Services
 
 				urlList.Add(startUrl);
 				urlQueue.Enqueue(startUrl);
+
 				string currUrl; 
-				while (urlList.Count < countUrls || !urlQueue.IsEmpty)
+				while ((urlList.Count < countUrls || !urlQueue.IsEmpty) && searchState != SearchState.Stopped)
 				{
-					if (searchState == SearchState.Running && !urlQueue.IsEmpty && urlQueue.TryDequeue(out currUrl))
+					if (searchState == SearchState.Running && urlQueue.TryDequeue(out currUrl))
 					{
 						var htmlLoader = htmlLoaderFactory.Create(currUrl);
 						htmlLoader.HtmlDocumentLoaded += HtmlDocumentLoadedHandler;
 						htmlLoader.HtmlDocumentLoadFailed += HtmlDocumentLoadFailedHandler;
-						taskFactory.StartNew(async () => await htmlLoader.Load());
-					} 
+						taskFactory.StartNew(async () => await htmlLoader.Load(), cts.Token);
+					}
+					Thread.Sleep(100);
 				}
+
+				urlList.TakeWhile(url => url != null);
+				urlQueue.TakeWhile(url => url != null);
+
 				searchState = SearchState.Stopped;
 			}
 			else
@@ -194,6 +203,7 @@ namespace SearchIn.Api.Services
 			if (searchState == SearchState.Running)
 			{
 				searchState = SearchState.Stopped;
+				cts.Cancel();
 			}
 			else if (searchState == SearchState.Paused)
 			{
@@ -208,6 +218,12 @@ namespace SearchIn.Api.Services
 		private void OnNewUrlListFound(IEnumerable<UrlDto> urlList)
 		{
 			NewUrlListFound?.Invoke(urlList);
+		}
+
+		public void Dispose()
+		{
+			urlList.Dispose();
+			cts.Dispose();
 		}
 	}
 }

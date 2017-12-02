@@ -26,6 +26,9 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
 
+
+# Important
+
 ## Node.js
 
 v8.9.1
@@ -34,4 +37,7 @@ v8.9.1
 
 v5.5.1
 
+## How to run?
 
+1) npm install 
+2) ng serve
