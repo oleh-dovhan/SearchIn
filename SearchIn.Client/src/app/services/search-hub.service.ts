@@ -1,6 +1,7 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { Observable } from "rxjs/Observable";
 import 'signalr';
+import { environment } from '../../environments/environment';
 import { Url } from "../models/url";
 import { UrlState } from "../models/url-state";
 declare var jquery: any;
@@ -9,19 +10,22 @@ declare var $: any;
 @Injectable()
 export class SearchHubService {
 
-  private hubUrl = 'http://localhost:49690/search';
-  private hubName = 'searchhub';
+  private readonly hubUrl: string;
+  private readonly hubName: string;
 
-  private SignalrConnection: any;
-  private ChatProxy: any;
+  private readonly SignalrConnection: any;
+  private readonly ChatProxy: any;
   private ConnectionId: any;
 
-  public onConnectedEvent: EventEmitter<void>;
-  public onUrlStateChanged: EventEmitter<UrlState>;
-  public onNewUrlListFound: EventEmitter<Url[]>;
-  public onErrorFound: EventEmitter<string>;
+  public readonly onConnectedEvent: EventEmitter<void>;
+  public readonly onUrlStateChanged: EventEmitter<UrlState>;
+  public readonly onNewUrlListFound: EventEmitter<Url[]>;
+  public readonly onErrorFound: EventEmitter<string>;
 
   constructor() {
+    this.hubUrl = environment.hubUrl;
+    this.hubName = environment.hubName;
+
     this.SignalrConnection = $.hubConnection(this.hubUrl, {
       useDefaultPath: false
     });
@@ -85,6 +89,14 @@ export class SearchHubService {
       console.log('Invocation of PauseSearch on server succeeded.');
     }).fail(function (error) {
       console.log('Invocation of PauseSearch on server failed. Error: ' + error);
+    });
+  }
+
+  resumeSearch() {
+    this.ChatProxy.invoke('ResumeSearch').done(function () {
+      console.log('Invocation of ResumeSearch on server succeeded.');
+    }).fail(function (error) {
+      console.log('Invocation of ResumeSearch on server failed. Error: ' + error);
     });
   }
 

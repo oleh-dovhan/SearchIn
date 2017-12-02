@@ -5,8 +5,7 @@ namespace SearchIn.Api.Services
 {
 	public interface IHtmlFinder
 	{
-		IEnumerable<string> FindAllUrls(HtmlDocument htmlDoc);
 		bool Contains(HtmlDocument htmlDoc, string searchString);
-
+		IEnumerable<string> FindAllUrls(HtmlDocument htmlDoc);
 	}
 }

@@ -16,8 +16,7 @@ namespace SearchIn.Api.Services
 
 		static HtmlLoader()
 		{
-			httpClient = new HttpClient(new WebRequestHandler() { AllowPipelining = true });
-			httpClient.Timeout = new TimeSpan(0, 0, 3);
+			httpClient = new HttpClient();
 		}
 		public HtmlLoader(string url)
 		{
@@ -40,8 +39,10 @@ namespace SearchIn.Api.Services
 				{
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
-						Stream htmlDoc = await content.ReadAsStreamAsync();
-						OnHtmlDocumentLoaded(url, htmlDoc);
+						using (Stream htmlDoc = await content.ReadAsStreamAsync())
+						{
+							OnHtmlDocumentLoaded(url, htmlDoc);
+						}
 					}
 					else OnHtmlDocumentLoadFailed(url, response.StatusCode);
 				}

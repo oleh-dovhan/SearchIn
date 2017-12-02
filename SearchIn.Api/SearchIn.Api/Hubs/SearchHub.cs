@@ -31,7 +31,17 @@ namespace SearchIn.Api.Hubs
 				if (searchService.SearchState == SearchState.Paused)
 					searchService.ResumeSearch();
 				else
-					await Task.Run(() => searchService.StartSearch(startUrl, searchString, countUrls, countThreads));
+					await Task.Run(() =>
+					{
+						try
+						{
+							searchService.StartSearch(startUrl, searchString, countUrls, countThreads);
+						}
+						catch (SearchProcessException ex)
+						{
+							SendErrorMessageToClient(ex.Message);
+						}
+					});
 			}
 			catch (SearchProcessException ex)
 			{

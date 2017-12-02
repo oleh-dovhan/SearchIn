@@ -15,6 +15,11 @@ namespace SearchIn.Api.Services
 			urlRegex = new Regex(WebConfigurationManager.AppSettings["urlRegex"], RegexOptions.IgnoreCase);
 		}
 
+		public bool Contains(HtmlDocument htmlDoc, string searchString)
+		{
+			return htmlDoc.DocumentNode
+						  .SelectSingleNode(string.Format("//*[text()[contains(., '{0}')]]", searchString)) != null;
+		}
 		public IEnumerable<string> FindAllUrls(HtmlDocument htmlDoc)
 		{
 			var hrefNodes = htmlDoc.DocumentNode
@@ -26,11 +31,6 @@ namespace SearchIn.Api.Services
 								.Where(url => urlRegex.IsMatch(url));
 			}
 			else return new List<string>();
-		}
-		public bool Contains(HtmlDocument htmlDoc, string searchString)
-		{
-			return htmlDoc.DocumentNode
-						  .SelectSingleNode(string.Format("a[text()='{0}']", searchString)) != null;
 		}
 	}
 }

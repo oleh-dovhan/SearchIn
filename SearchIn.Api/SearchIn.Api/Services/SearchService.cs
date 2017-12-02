@@ -72,44 +72,51 @@ namespace SearchIn.Api.Services
 				                 && !string.IsNullOrWhiteSpace(searchString)
 				                 && urlRegex.IsMatch(startUrl);
 		}
-		private void HtmlDocumentLoadedHandler(string url, Stream stream)
+		private void ContainsProcess(HtmlDocument htmlDoc, string searchString)
 		{
-			var htmlDoc = new HtmlDocument();
-			htmlDoc.Load(stream);
-
 			bool contains = htmlFinder.Contains(htmlDoc, searchString);
 			var urlStateDto = new UrlStateDto
 			{
-				Id = urlList.ToList().IndexOf(url),
-				ScanState = contains ? ScanState.Found: ScanState.NotFound
+				Id = urlList.ToList().IndexOf(searchString),
+				ScanState = contains ? ScanState.Found : ScanState.NotFound
 			};
 			OnUrlStateChanged(urlStateDto);
-
-		    var childUrlList = htmlFinder.FindAllUrls(htmlDoc);
+		}
+		private void FindUrlsProcess(HtmlDocument htmlDoc)
+		{
+			var childUrlList = htmlFinder.FindAllUrls(htmlDoc);
 			var childUrlDtoList = new List<UrlDto>();
 			foreach (var childUrl in childUrlList)
 			{
-				if (urlList.Count >= countUrls)
+				if (urlList.Count < countUrls)
 				{
-					searchState = SearchState.Stopped;
-					break;
-				}
-				if (!urlList.Contains(childUrl))
-				{
-					urlList.Add(childUrl);
-					urlQueue.Enqueue(childUrl);
-					childUrlDtoList.Add(new UrlDto
+					if (!urlList.Contains(childUrl))
 					{
-						Id = urlList.Count - 1,
-						ScanState = ScanState.Downloading,
-						Value = childUrl
-					});
+						urlList.Add(childUrl);
+						urlQueue.Enqueue(childUrl);
+						childUrlDtoList.Add(new UrlDto
+						{
+							Id = urlList.Count - 1,
+							ScanState = ScanState.Downloading,
+							Value = childUrl
+						});
+					}
 				}
+				else break;
 			}
 			if (childUrlDtoList.Count > 0)
 			{
 				OnNewUrlListFound(childUrlDtoList);
 			}
+		}
+		private void HtmlDocumentLoadedHandler(string url, Stream stream)
+		{
+			var htmlDoc = new HtmlDocument();
+			htmlDoc.Load(stream);
+			ContainsProcess(htmlDoc, url);
+			if (urlList.Count < countUrls)
+				FindUrlsProcess(htmlDoc);
+
 		}
 		private void HtmlDocumentLoadFailedHandler(string url, HttpStatusCode statusCode)
 		{
@@ -138,11 +145,14 @@ namespace SearchIn.Api.Services
 				var lcts = new LimitedConcurrencyLevelTaskScheduler(countThreads);
 				var taskFactory = new TaskFactory(lcts);
 
+				OnNewUrlListFound(new List<UrlDto>() { new UrlDto { Id = 0, ScanState = ScanState.Downloading, Value = startUrl } });
+
+				urlList.Add(startUrl);
 				urlQueue.Enqueue(startUrl);
 				string currUrl; 
-				while (searchState != SearchState.Stopped || !urlQueue.IsEmpty)
+				while (urlList.Count < countUrls || !urlQueue.IsEmpty)
 				{
-					if (searchState == SearchState.Running && urlQueue.TryDequeue(out currUrl))
+					if (searchState == SearchState.Running && !urlQueue.IsEmpty && urlQueue.TryDequeue(out currUrl))
 					{
 						var htmlLoader = htmlLoaderFactory.Create(currUrl);
 						htmlLoader.HtmlDocumentLoaded += HtmlDocumentLoadedHandler;
@@ -150,6 +160,7 @@ namespace SearchIn.Api.Services
 						taskFactory.StartNew(async () => await htmlLoader.Load());
 					} 
 				}
+				searchState = SearchState.Stopped;
 			}
 			else
 			{
