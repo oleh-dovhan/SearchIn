@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using SearchIn.Api.Models;
 using SearchIn.Api.Exceptions;
-using SearchIn.Api.Infrastructure;
 
 namespace SearchIn.Api.Services
 {
@@ -24,9 +23,11 @@ namespace SearchIn.Api.Services
 		private IHtmlLoaderFactory htmlLoaderFactory;
 		private IHtmlFinder htmlFinder;
 
+		private List<Task> tasks;
+		private CancellationTokenSource cts;
+
 		private BlockingCollection<string> urlList;
 		private ConcurrentQueue<string> urlQueue;
-		private CancellationTokenSource cts;
 
 		private string searchString; 
 		private int countUrls;
@@ -60,9 +61,11 @@ namespace SearchIn.Api.Services
 			this.htmlLoaderFactory = htmlLoaderFactory;
 			this.htmlFinder = htmlFinder;
 
+			tasks = new List<Task>();
+			cts = new CancellationTokenSource();
+
 			urlList = new BlockingCollection<string>();
 			urlQueue = new ConcurrentQueue<string>();
-			cts = new CancellationTokenSource();
 
 			searchState = SearchState.Stopped;
 		}
@@ -145,12 +148,10 @@ namespace SearchIn.Api.Services
 				this.searchString = searchString;
 				this.countUrls = countUrls;
 
-				var tasks = new List<Task>();
-
-				OnNewUrlListFound(new List<UrlDto>() { new UrlDto { Id = 0, ScanState = ScanState.Downloading, Value = startUrl } });
-
 				urlList.Add(startUrl);
 				urlQueue.Enqueue(startUrl);
+
+				OnNewUrlListFound(new List<UrlDto>() { new UrlDto { Id = 0, ScanState = ScanState.Downloading, Value = startUrl } });
 
 				string currUrl; 
 				while ((urlList.Count < countUrls || !urlQueue.IsEmpty) && searchState != SearchState.Stopped)
@@ -178,6 +179,7 @@ namespace SearchIn.Api.Services
 				}
 
 				Task.WaitAll(tasks.ToArray());
+				tasks.Clear();
 				urlList.TakeWhile(url => url != null);
 				urlQueue.TakeWhile(url => url != null);
 
@@ -216,6 +218,10 @@ namespace SearchIn.Api.Services
 			{
 				searchState = SearchState.Stopped;
 				cts.Cancel();
+				Task.WaitAll(tasks.ToArray());
+				tasks.Clear();
+				urlList.TakeWhile(url => url != null);
+				urlQueue.TakeWhile(url => url != null);
 			}
 			else if (searchState == SearchState.Paused)
 			{

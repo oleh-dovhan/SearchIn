@@ -24,35 +24,36 @@ namespace SearchIn.Api.Hubs
 			return base.OnConnected();
 		}
 
-		public async Task StartSearch(string startUrl, string searchString, int countUrls, int countThreads)
+		public void StartSearch(string startUrl, string searchString, int countUrls, int countThreads)
 		{
-			try
+			Task.Run(() =>
 			{
-				if (searchService.SearchState == SearchState.Paused)
-					searchService.ResumeSearch();
-				else
-					await Task.Run(() =>
-					{
-						try
-						{
-							searchService.StartSearch(startUrl, searchString, countUrls, countThreads);
-						}
-						catch (SearchProcessException ex)
-						{
-							SendErrorMessageToClient(ex.Message);
-						}
-					});
-			}
-			catch (SearchProcessException ex)
-			{
-				SendErrorMessageToClient(ex.Message);
-			}
+				try
+				{
+					searchService.StartSearch(startUrl, searchString, countUrls, countThreads);
+				}
+				catch (SearchProcessException ex)
+				{
+					SendErrorMessageToClient(ex.Message);
+				}
+			});
 		}
 		public void PauseSearch()
 		{
 			try
 			{
 				searchService.PauseSearch();
+			}
+			catch (SearchProcessException ex)
+			{
+				SendErrorMessageToClient(ex.Message);
+			}
+		}
+		public void ResumeSearch()
+		{
+			try
+			{
+				searchService.ResumeSearch();
 			}
 			catch (SearchProcessException ex)
 			{
@@ -73,25 +74,16 @@ namespace SearchIn.Api.Hubs
 
 		private void UrlStateChangedHandler(UrlStateDto urlStateDto)
 		{
-			lock (this)
-			{
-				Clients.Caller.onUrlStateChanged(urlStateDto);
-			}
+			Clients.Caller.onUrlStateChanged(urlStateDto);
 		}
 		private void NewUrlListFoundHandler(IEnumerable<UrlDto> urlList)
 		{
-			lock (this)
-			{
-				Clients.Caller.onNewUrlListFound(urlList);
-			}
+			Clients.Caller.onNewUrlListFound(urlList);
 		}
 
 		private void SendErrorMessageToClient(string errorMessage)
 		{
-			lock (this)
-			{
-				Clients.Caller.onErrorFound(errorMessage);
-			}
+			Clients.Caller.onErrorFound(errorMessage);
 		}
 	}
 }

@@ -3,7 +3,6 @@ import { environment } from "../../../environments/environment";
 import { SearchHubService } from "../../services/search-hub.service";
 import { Url } from "../../models/url";
 import { UrlState } from "../../models/url-state";
-import { ScanState } from "../../models/scan-state";
 
 @Component({
   selector: 'app-search',
@@ -29,7 +28,6 @@ export class SearchComponent implements OnInit, OnDestroy, AfterViewInit {
   private urlList: Url[];
 
   private isConnectionEstablished: boolean;
-
   private isProcessPaused: boolean;
 
   constructor(private searchHubService: SearchHubService, private cdRef: ChangeDetectorRef) {
@@ -51,7 +49,6 @@ export class SearchComponent implements OnInit, OnDestroy, AfterViewInit {
     this.urlList = [];
 
     this.isConnectionEstablished = false;
-
     this.isProcessPaused = false;
   }
 
@@ -62,20 +59,24 @@ export class SearchComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
-    this.searchHubService.disconnect();
+    if (this.isConnectionEstablished) {
+      this.searchHubService.disconnect();
+    }
   }
 
   start() {
-    if (this.checkConnection() && this.validateForm()) {
+    if (this.checkConnection()) {
       if (this.isProcessPaused) {
         this.searchHubService.resumeSearch();
         this.isProcessPaused = false;
       }
       else {
-        this.currentProgressValue = 0;
-        this.updateProgress();
-        this.urlList = [];
-        this.searchHubService.startSearch(this.startUrl, this.searchString, this.countUrls, this.countThreads);
+        if (this.validateForm()) {
+          this.currentProgressValue = 0;
+          this.updateProgress();
+          this.urlList = [];
+          this.searchHubService.startSearch(this.startUrl, this.searchString, this.countUrls, this.countThreads);
+        }
       }
     }
   }
@@ -102,15 +103,12 @@ export class SearchComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private validateForm(): boolean {
-    console.log(this.countUrls == undefined);
     let isAllFieldsFilled = this.startUrl != undefined
       && this.searchString != undefined
       && this.countUrls != undefined
       && this.countThreads != undefined
       && this.startUrl != ""
       && this.searchString != ""
-      && this.countUrls != null
-      && this.countThreads != null;
     let isCountUrlsValid = this.countUrls <= this.maxCountUrls
       && this.countUrls > 0;
     let isCountThreadsValid = this.countThreads <= this.maxCountThreads
