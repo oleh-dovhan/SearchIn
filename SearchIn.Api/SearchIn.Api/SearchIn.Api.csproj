@@ -222,8 +222,7 @@
     </Compile>
     <Compile Include="Hubs\IClient.cs" />
     <Compile Include="Hubs\SearchHub.cs" />
-    <Compile Include="Infrastructure\LimitedConcurrencyLevelTaskScheduler.cs" />
-    <Compile Include="Infrastructure\NinjectResolver.cs" />
+    <Compile Include="Infrastructure\NinjectSignalRDependencyResolver.cs" />
     <Compile Include="Models\ScanState.cs" />
     <Compile Include="Models\SearchState.cs" />
     <Compile Include="Models\UrlDto.cs" />
